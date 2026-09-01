@@ -16,8 +16,22 @@ export interface Decision {
 }
 
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
-const GREEDY_CEILING = 0.35;
+
+/**
+ * Thresholds. These are what actually separate the policies, so they are
+ * gathered here rather than buried in the switch.
+ *
+ * GREEDY_CEILING sits above the 2-dice bust chance (44.4%) so the greedy
+ * policy will take that throw, and below the 1-die chance (66.7%) so it still
+ * will not do something purely self-destructive.
+ *
+ * SAFE_CEILING sits below the 3-dice chance (27.8%) so the careful policy only
+ * rolls with four or more dice in hand. Without a ceiling at all it would
+ * chase its floor with a single die and farkle more often than the greedy one.
+ */
+const GREEDY_CEILING = 0.5;
 const SAFE_FLOOR = 300;
+const SAFE_CEILING = 0.2;
 
 export class RollingStrategy {
   private strategyId: StrategyId;
@@ -43,12 +57,17 @@ export class RollingStrategy {
       }
 
       case "safe": {
-        const roll = ctx.pot < SAFE_FLOOR;
+        const p = farkleChance(ctx.diceLeft);
+        const belowFloor = ctx.pot < SAFE_FLOOR;
+        const goodOdds = p < SAFE_CEILING;
+        const roll = belowFloor && goodOdds;
         return {
           roll,
           reasoning: roll
-            ? `Only ${ctx.pot} so far, under my ${SAFE_FLOOR} floor. Worth one more with ${ctx.diceLeft}.`
-            : `${ctx.pot} is enough. I do not need to find out what happens next.`,
+            ? `Only ${ctx.pot} so far and ${ctx.diceLeft} dice still in hand at ${pct(p)}. Worth one more.`
+            : belowFloor
+              ? `Just ${ctx.pot}, but ${ctx.diceLeft} dice is a ${pct(p)} risk. Not worth it. Banking.`
+              : `${ctx.pot} is enough. I do not need to find out what happens next.`,
         };
       }
 

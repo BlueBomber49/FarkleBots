@@ -7,7 +7,13 @@
 import { scoreAll } from "../../Backend/farkleRules";
 import { farkleChance, expectedValueOfRolling } from "./odds";
 import { STRATEGIES } from "./strategies";
-import type { GameSnapshot, DieView, SeatView, LogEntry } from "../types";
+import { RollingStrategy } from "../../Backend/rollingStrategy";
+import type {
+  GameSnapshot,
+  DieView,
+  SeatView,
+  DecisionMath,
+} from "../types";
 import type { Game } from "../../Backend/game";
 
 export function toSnapshot(game: Game): GameSnapshot {
@@ -31,14 +37,14 @@ export function toSnapshot(game: Game): GameSnapshot {
 
   // Compute which dice are scoring in the current phase
   let scoringIndexes: number[] = [];
-  if (game.phase === "awaitingPick" || game.phase === "awaitingDecision") {
-    const liveValues = game.allDice.getLiveDice().map((d) => d.currentValue);
+  if (game.currentPhase === "awaitingPick" || game.currentPhase === "awaitingDecision") {
+    const liveValues = game.dice.getLiveDice().map((d) => d.currentValue);
     scoringIndexes = scoreAll(liveValues).scoringIndexes;
   }
 
   // Map live dice to their visual representation
   let liveIndex = -1;
-  const dice: DieView[] = game.allDice.allDice.map((d) => {
+  const dice: DieView[] = game.dice.allDice.map((d) => {
     if (!d.isFrozen) liveIndex += 1;
     return {
       id: d.id,
@@ -50,8 +56,8 @@ export function toSnapshot(game: Game): GameSnapshot {
   });
 
   const winner =
-    game.winnerId !== null
-      ? seats.find((s) => s.id === game.winnerId) || null
+    game.winner !== null
+      ? seats.find((s) => s.id === game.winner) || null
       : null;
 
   const math = computeDecisionMath(game);
@@ -59,59 +65,76 @@ export function toSnapshot(game: Game): GameSnapshot {
   return {
     seats,
     dice,
-    turnPot: game.turnPot,
+    turnPot: game.pot,
     pendingPick: game.pendingPick,
     targetScore: game.targetScore,
-    turnNumber: game.turnNumber,
-    phase: game.phase,
-    log: game.log,
+    turnNumber: game.turn,
+    phase: game.currentPhase,
+    log: [...game.entries],
     math,
     winner,
   };
 }
 
-function computeDecisionMath(game: Game) {
-  if (game.phase !== "awaitingDecision" || game.isOver) {
-    return null;
+function computeDecisionMath(game: Game): DecisionMath | null {
+  if (game.isOver) return null;
+
+  if (game.currentPhase === "farkle") {
+    return {
+      diceLeft: 0,
+      farkleChance: 1,
+      expectedIfRoll: 0,
+      certainIfBank: 0,
+      verdict: "BUST",
+      reasoning: `A roll with no scoring dice ends the turn. ${game.pot} gone.`,
+    };
   }
 
-  const liveDice = game.allDice.getLiveDice();
-  const selectedDice = game.allDice.getSelectedDice();
+  if (game.currentPhase === "hotDice") {
+    return {
+      diceLeft: 6,
+      farkleChance: farkleChance(6),
+      expectedIfRoll: Math.round(expectedValueOfRolling(game.pot, 6)),
+      certainIfBank: game.pot,
+      verdict: "HOT",
+      reasoning:
+        "All six dice scored, so the pot carries and all six come back live.",
+    };
+  }
+
+  if (game.currentPhase !== "awaitingDecision") return null;
+
+  const liveDice = game.dice.getLiveDice();
+  const selectedDice = game.dice.getSelectedDice();
   const wouldRemain = liveDice.length - selectedDice.length;
   const diceLeft = wouldRemain === 0 ? 6 : wouldRemain;
-  const currentPot = game.turnPot + game.pendingPick;
+  const currentPot = game.pot + game.pendingPick;
 
   const bankValue = currentPot;
   const farkleProb = farkleChance(diceLeft);
   const expectedRoll = expectedValueOfRolling(currentPot, diceLeft);
 
-  let verdict: "ROLL" | "BANK" | "BUST" | "HOT";
-  if (diceLeft === 0) {
-    verdict = "HOT";
-  } else if (farkleProb > 0.5) {
-    verdict = "BUST";
-  } else if (expectedRoll > bankValue) {
-    verdict = "ROLL";
-  } else {
-    verdict = "BANK";
-  }
-
-  const strategy = STRATEGIES[game.currentPlayer.strategy];
+  // The very class the game uses to decide, so the panel can never describe a
+  // decision the seat did not make.
+  const strategy = new RollingStrategy(game.currentPlayer.strategy);
   const decision = strategy.decide({
     pot: currentPot,
     diceLeft,
     banked: game.currentPlayer.banked,
     leaderScore: game.leaderScore,
     target: game.targetScore,
-    turnNumber: game.turnNumber,
+    turnNumber: game.turn,
   });
 
   return {
     diceLeft,
     farkleChance: farkleProb,
-    expectedIfRoll: expectedRoll,
+    expectedIfRoll: Math.round(expectedRoll),
     certainIfBank: bankValue,
-    verdict,
+    // The verdict is what this seat actually does, not a second opinion from
+    // expected value. Deriving it separately let the chip say ROLL while the
+    // bot went on to bank.
+    verdict: decision.roll ? "ROLL" : "BANK",
     reasoning: decision.reasoning,
   };
 }

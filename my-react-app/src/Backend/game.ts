@@ -2,7 +2,7 @@ import { Player } from "./player";
 import { AllDice } from "./allDice";
 import { RollingStrategy } from "./rollingStrategy";
 import { scoreAll, scoreSelection, isFarkle } from "./farkleRules";
-import type { SeatConfig, Phase } from "../Frontend/types";
+import type { SeatConfig, Phase, LogEntry } from "../Frontend/types";
 
 const DICE_COUNT = 6;
 
@@ -14,16 +14,10 @@ export class Game {
   private turnPeak: number = 0;
   private turnNumber: number = 1;
   private phase: Phase = "awaitingRoll";
-  private log: Array<{
-    id: string;
-    seatId: string;
-    text: string;
-    kind: string;
-  }> = [];
+  private log: LogEntry[] = [];
   private logId: number = 0;
   private winnerId: string | null = null;
   public targetScore: number;
-  private rng: () => number;
 
   constructor(
     seatConfigs: SeatConfig[],
@@ -31,8 +25,7 @@ export class Game {
     rng: () => number = Math.random,
   ) {
     this.targetScore = targetScore;
-    this.rng = rng;
-    this.allDice = new AllDice(DICE_COUNT);
+    this.allDice = new AllDice(DICE_COUNT, rng);
 
     this._players = seatConfigs.map((config) => {
       const player = new Player(
@@ -78,6 +71,32 @@ export class Game {
 
   get leaderScore(): number {
     return Math.max(...this._players.map((p) => p.banked));
+  }
+
+  /** Read-only views for the adapter. The fields stay private so only the
+   *  game can mutate them, but the UI needs to see them to render. */
+  get currentPhase(): Phase {
+    return this.phase;
+  }
+
+  get dice(): AllDice {
+    return this.allDice;
+  }
+
+  get entries(): readonly LogEntry[] {
+    return this.log;
+  }
+
+  get pot(): number {
+    return this.turnPot;
+  }
+
+  get turn(): number {
+    return this.turnNumber;
+  }
+
+  get winner(): string | null {
+    return this.winnerId;
   }
 
   get players(): Player[] {
@@ -199,6 +218,11 @@ export class Game {
     this.nextSeat();
   }
 
+  /**
+   * Advance a bot seat by one tick. Returns false when the table is waiting on
+   * a person, including on a farkle or hot-dice banner: the human dismisses
+   * those with the Continue button so they set their own pace.
+   */
   public stepBot(): boolean {
     if (this.isOver || this.currentPlayer.isHuman) return false;
 
@@ -271,11 +295,12 @@ export class Game {
     this.phase = "awaitingRoll";
   }
 
-  private push(kind: string, text: string): void {
+  private push(kind: LogEntry['kind'], text: string): void {
     this.logId += 1;
     this.log.unshift({
       id: `l${this.logId}`,
       seatId: this.currentPlayer.id,
+      accent: this.currentPlayer.accent,
       text,
       kind,
     });

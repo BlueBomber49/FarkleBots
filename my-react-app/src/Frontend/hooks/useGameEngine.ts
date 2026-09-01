@@ -5,6 +5,9 @@ import type { GameSnapshot, SeatConfig } from "../types";
 
 /** Milliseconds between bot steps at 1x. Higher speeds divide this. */
 const BASE_TICK = 620;
+/** Bot farkle and hot-dice banners flashed past too fast to read at speed.
+ *  Human banners are not on a timer at all: they wait for Continue. */
+const BANNER_HOLD = 1500;
 
 export type Speed = 1 | 2 | 4;
 
@@ -39,9 +42,14 @@ export function useGameEngine(seats: SeatConfig[], target: number) {
   // timer stops as soon as the active seat is a person.
   useEffect(() => {
     if (paused || game.isOver || game.awaitingHuman) return;
+    const resolving =
+      snapshot.phase === "farkle" || snapshot.phase === "hotDice";
+    const delay = resolving
+      ? BANNER_HOLD / Math.min(speed, 2)
+      : BASE_TICK / speed;
     const id = window.setTimeout(() => {
       if (game.stepBot()) setSnapshot(toSnapshot(game));
-    }, BASE_TICK / speed);
+    }, delay);
     return () => window.clearTimeout(id);
   }, [game, snapshot, paused, speed]);
 

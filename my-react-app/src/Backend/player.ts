@@ -39,9 +39,14 @@ export class Player {
     const scored = this.history.filter((t) => !t.busted);
 
     return {
-      avgTurn: scored.length > 0
-        ? scored.reduce((sum, t) => sum + t.peak, 0) / scored.length
-        : 0,
+      // Rounded here rather than at the call site: this is a points total and
+      // the UI renders it raw, so an unrounded mean showed as 683.3333333333334.
+      avgTurn:
+        scored.length > 0
+          ? Math.round(
+              scored.reduce((sum, t) => sum + t.peak, 0) / scored.length,
+            )
+          : 0,
       farkleRate: turns > 0 ? busts / turns : 0,
       timesBanked: scored.length,
     };

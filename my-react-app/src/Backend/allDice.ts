@@ -1,12 +1,15 @@
 import { Dice } from "./dice";
-import { scoreAll, scoreSelection, isFarkle } from "./farkleRules";
+import { scoreAll } from "./farkleRules";
 
 export class AllDice {
   public allDice!: Dice[];
   public liveDice: Dice[]; //Separate out the dice rolled each round for scoring purposes
   public selectedDice: Dice[];
-  constructor(numDice = 6) {
-    this.allDice = Array.from({ length: numDice }, (_, i) => new Dice("d" + i));
+  constructor(numDice = 6, rng: () => number = Math.random) {
+    this.allDice = Array.from(
+      { length: numDice },
+      (_, i) => new Dice("d" + i, [1, 2, 3, 4, 5, 6], rng),
+    );
     this.liveDice = [];
     this.selectedDice = [];
   }
