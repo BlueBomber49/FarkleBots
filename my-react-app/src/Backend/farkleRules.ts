@@ -20,13 +20,13 @@ function counts(values: number[]): number[] {
 
 /**
  * Best score for a set of dice, assuming you keep everything that scores.
- * Used to price a whole roll and to decide whether a roll farkled.
+ * Used to decide whether a roll farkled.
  */
 export function scoreAll(values: number[]): ScoreResult {
   const c = counts(values);
   const all = values.map((_, i) => i);
 
-  // Whole-set combinations first: they beat any per-die reading.
+  // Whole-set combinations first, they're always best
   const isStraight = values.length === 6 && c.slice(1).every((n) => n === 1);
   if (isStraight)
     return { points: 1500, scoringIndexes: all, usesAllDice: true };
@@ -61,6 +61,7 @@ export function scoreAll(values: number[]): ScoreResult {
     }
   };
 
+  //Scoring for N of a kind (6, 5, 4, or 3)
   for (let face = 1; face <= 6; face += 1) {
     const n = c[face];
     if (n >= 3) {

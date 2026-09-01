@@ -180,7 +180,6 @@ export class Game {
       return;
     }
 
-    // Roll immediately instead of forcing a second click on the "Roll X dice" button.
     this.phase = "awaitingRoll";
     this.roll();
   }
@@ -274,7 +273,7 @@ export class Game {
 
   private commitPick(): void {
     this.turnPot += this.pendingPick;
-    this.turnPeak = Math.max(this.turnPeak, this.turnPot);
+    this.turnPeak = this.turnPot;
     this.allDice.allDice.forEach((d) => {
       if (d.selected) {
         d.isFrozen = true;
@@ -295,7 +294,7 @@ export class Game {
     this.phase = "awaitingRoll";
   }
 
-  private push(kind: LogEntry['kind'], text: string): void {
+  private push(kind: LogEntry["kind"], text: string): void {
     this.logId += 1;
     this.log.unshift({
       id: `l${this.logId}`,

@@ -7,7 +7,6 @@ export type StrategyId =
   | "human"
   | "greedy"
   | "safe"
-  | "greedierOverTime"
   | "safeWhenAhead"
   | "neverRollsOne";
 

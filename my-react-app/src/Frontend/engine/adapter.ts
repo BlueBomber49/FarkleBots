@@ -114,8 +114,6 @@ function computeDecisionMath(game: Game): DecisionMath | null {
   const farkleProb = farkleChance(diceLeft);
   const expectedRoll = expectedValueOfRolling(currentPot, diceLeft);
 
-  // The very class the game uses to decide, so the panel can never describe a
-  // decision the seat did not make.
   const strategy = new RollingStrategy(game.currentPlayer.strategy);
   const decision = strategy.decide({
     pot: currentPot,
@@ -131,9 +129,6 @@ function computeDecisionMath(game: Game): DecisionMath | null {
     farkleChance: farkleProb,
     expectedIfRoll: Math.round(expectedRoll),
     certainIfBank: bankValue,
-    // The verdict is what this seat actually does, not a second opinion from
-    // expected value. Deriving it separately let the chip say ROLL while the
-    // bot went on to bank.
     verdict: decision.roll ? "ROLL" : "BANK",
     reasoning: decision.reasoning,
   };

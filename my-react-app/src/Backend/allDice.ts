@@ -2,7 +2,7 @@ import { Dice } from "./dice";
 import { scoreAll } from "./farkleRules";
 
 export class AllDice {
-  public allDice!: Dice[];
+  public allDice: Dice[];
   public liveDice: Dice[]; //Separate out the dice rolled each round for scoring purposes
   public selectedDice: Dice[];
   constructor(numDice = 6, rng: () => number = Math.random) {
@@ -45,7 +45,7 @@ export class AllDice {
 
   public lockSelectedDice() {
     for (const dice of this.selectedDice) {
-      dice.isFrozen = !dice.isFrozen;
+      dice.isFrozen = true;
     }
   }
 
