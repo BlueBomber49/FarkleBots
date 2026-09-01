@@ -83,7 +83,7 @@ export class RollingStrategy {
               ? `I am ahead, so I only take small risks. ${pct(p)} is small enough.`
               : `I am ahead by ${ctx.banked - ctx.leaderScore + 1}. No reason to risk ${ctx.pot}. Banking.`
             : roll
-              ? `Behind by ${ctx.leaderScore - ctx.banked}. I have to take ${pct(p)} to catch up.`
+              ? `Behind by ${ctx.leaderScore - ctx.banked}. I have to take a risk of ${pct(p)} to catch up.`
               : `Behind, but ${pct(p)} would probably cost me the ${ctx.pot} I have. Banking.`,
         };
       }
