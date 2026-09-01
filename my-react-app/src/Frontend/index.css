@@ -3,37 +3,38 @@
    Direction: "Daylight" - warm paper, white cards, one accent per seat.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
 
 :root {
   /* surfaces */
-  --paper: #F6F1E7;
-  --card: #FFFFFF;
-  --sunk: #1C1917;
+  --paper: #f6f1e7;
+  --card: #ffffff;
+  --sunk: #1c1917;
 
   /* ink */
-  --ink: #1C1917;
-  --muted: #8A8177;
-  --faint: #B0A79C;
-  --on-dark: #F6F1E7;
-  --on-dark-muted: #9B9289;
+  --ink: #1c1917;
+  --muted: #8a8177;
+  --faint: #b0a79c;
+  --on-dark: #f6f1e7;
+  --on-dark-muted: #9b9289;
 
   /* lines and shadows */
   --hairline: rgba(28, 25, 23, 0.09);
   --shadow-rest: 0 1px 2px rgba(28, 25, 23, 0.06);
-  --shadow-card: 0 2px 3px rgba(28, 25, 23, 0.05), 0 12px 32px rgba(28, 25, 23, 0.07);
+  --shadow-card:
+    0 2px 3px rgba(28, 25, 23, 0.05), 0 12px 32px rgba(28, 25, 23, 0.07);
   --shadow-lift: 0 8px 22px rgba(28, 25, 23, 0.22);
 
   /* one accent per seat */
-  --seat-greedy: #E8613C;
-  --seat-cautious: #16A374;
-  --seat-adaptive: #7C5CE0;
-  --seat-human: #D9911B;
-  --seat-extra: #0E7490;
+  --seat-greedy: #e8d73c;
+  --seat-cautious: #16a374;
+  --seat-adaptive: #7c5ce0;
+  --seat-human: #0b0047;
+  --seat-extra: #0e7490;
 
   /* semantic */
-  --danger: #E0483C;
-  --good: #16A374;
+  --danger: #e0483c;
+  --good: #16a374;
 
   /* shape */
   --r-sm: 9px;
@@ -42,14 +43,23 @@
   --r-xl: 26px;
   --r-pill: 999px;
 
-  font-family: Outfit, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family:
+    Outfit,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   color: var(--ink);
   background: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -57,7 +67,9 @@ body {
   background: var(--paper);
 }
 
-#root { min-height: 100vh; }
+#root {
+  min-height: 100vh;
+}
 
 button {
   font: inherit;
@@ -66,10 +78,14 @@ button {
   background: none;
   cursor: pointer;
 }
-button:disabled { cursor: not-allowed; }
+button:disabled {
+  cursor: not-allowed;
+}
 
 /* Scores must not jitter as digits tick over. */
-.n { font-variant-numeric: tabular-nums; }
+.n {
+  font-variant-numeric: tabular-nums;
+}
 
 .label {
   font-size: 11.5px;
@@ -84,21 +100,40 @@ button:disabled { cursor: not-allowed; }
   border-radius: var(--r-pill);
   font-size: 15px;
   font-weight: 700;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    opacity 0.12s ease;
 }
-.btn:active:not(:disabled) { transform: scale(0.97); }
-.btn:disabled { opacity: 0.4; }
-.btn-primary { color: var(--card); background: var(--sunk); }
-.btn-primary:hover:not(:disabled) { box-shadow: var(--shadow-lift); }
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.4;
+}
+.btn-primary {
+  color: var(--card);
+  background: var(--sunk);
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-lift);
+}
 .btn-secondary {
   color: var(--ink);
   background: var(--card);
-  box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-rest);
+  box-shadow:
+    inset 0 0 0 1px var(--hairline),
+    var(--shadow-rest);
 }
-.btn-secondary:hover:not(:disabled) { background: #FBF8F2; box-shadow: inset 0 0 0 1px rgba(28, 25, 23, 0.18); }
+.btn-secondary:hover:not(:disabled) {
+  background: #fbf8f2;
+  box-shadow: inset 0 0 0 1px rgba(28, 25, 23, 0.18);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
